@@ -1,0 +1,87 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Log in";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h2 class="text-center mb-0">
+                    <i class="fas fa-sign-in-alt me-2"></i>Log In
+                </h2>
+            </div>
+            <div class="card-body">
+                <section>
+                    <form id="account" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.EmailOrUsername" class="form-label">
+                                <i class="fas fa-user me-1"></i>Email or Username
+                            </label>
+                            <input asp-for="Input.EmailOrUsername" class="form-control" autocomplete="username"
+                                   aria-required="true" placeholder="Enter your email or username" />
+                            <span asp-validation-for="Input.EmailOrUsername" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Password" class="form-label">
+                                <i class="fas fa-lock me-1"></i>Password
+                            </label>
+                            <input asp-for="Input.Password" class="form-control" autocomplete="current-password"
+                                   aria-required="true" placeholder="Enter your password" />
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" asp-for="Input.RememberMe" />
+                            <label class="form-check-label" asp-for="Input.RememberMe">
+                                @Html.DisplayNameFor(m => m.Input.RememberMe)
+                            </label>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button id="login-submit" type="submit" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-1"></i>Log in
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <div class="text-center">
+                    <p class="mb-0">
+                        Don't have an account?
+                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none">
+                            <i class="fas fa-user-plus me-1"></i>Register here
+                        </a>
+                    </p>
+                </div>
+
+                <!-- Test Accounts Info -->
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h6 class="mb-2">
+                        <i class="fas fa-info-circle me-1"></i>Test Accounts:
+                    </h6>
+                    <small class="text-muted">
+                        <div class="mb-1">
+                            <strong>Admin:</strong> admin@recipesharingplatform.com / Admin123!
+                        </div>
+                        <div class="mb-1">
+                            <strong>Chef:</strong> chef@recipesharingplatform.com / Chef123!
+                        </div>
+                        <div>
+                            <strong>User:</strong> user@recipesharingplatform.com / User123!
+                        </div>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

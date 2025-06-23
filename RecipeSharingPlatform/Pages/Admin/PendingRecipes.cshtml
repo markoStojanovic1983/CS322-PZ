@@ -1,0 +1,256 @@
+﻿@page
+@model RecipeSharingPlatform.Pages.Admin.PendingRecipesModel
+@{
+    ViewData["Title"] = "Pending Recipes";
+}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><i class="fas fa-clock me-2"></i>@ViewData["Title"]</h1>
+                <a asp-page="./Dashboard" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+            </div>
+            <p class="lead">Review and moderate recipe submissions</p>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Pending Recipes -->
+    @if (Model.PendingRecipes.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>@Model.PendingRecipes.Count</strong> recipe(s) awaiting your review.
+                </div>
+            </div>
+        </div>
+
+        @foreach (var recipe in Model.PendingRecipes)
+        {
+            <div class="card mb-4 border-warning shadow">
+                <div class="card-header bg-warning text-dark">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-0">
+                                <i class="fas fa-utensils me-2"></i>@recipe.Title
+                            </h5>
+                            <small>
+                                <i class="fas fa-user me-1"></i>
+                                Submitted by <strong>@recipe.User.FirstName @recipe.User.LastName</strong>
+                                <i class="fas fa-calendar ms-2 me-1"></i>
+                                on @recipe.CreatedDate.ToString("MMM dd, yyyy 'at' HH:mm")
+                            </small>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-tag me-1"></i>@recipe.Category.CategoryName
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Recipe Image -->
+                        <div class="col-md-3">
+                            @if (recipe.MainImage != null && recipe.MainImage.Length > 0)
+                            {
+                                <img src="/image/GetRecipeImage/@recipe.RecipeID"
+                                     class="img-fluid rounded"
+                                     alt="@recipe.Title"
+                                     style="max-height: 200px; width: 100%; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <i class="fas fa-image text-muted fa-2x"></i>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Recipe Details -->
+                        <div class="col-md-9">
+                            <h6><i class="fas fa-align-left me-1"></i>Description:</h6>
+                            <p>@recipe.Description</p>
+
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <strong><i class="fas fa-clock me-1"></i>Prep Time:</strong> @recipe.PreparationTime min
+                                </div>
+                                <div class="col-md-3">
+                                    <strong><i class="fas fa-fire me-1"></i>Cook Time:</strong> @recipe.CookingTime min
+                                </div>
+                                <div class="col-md-3">
+                                    <strong><i class="fas fa-users me-1"></i>Servings:</strong> @recipe.Servings
+                                </div>
+                                <div class="col-md-3">
+                                    <strong><i class="fas fa-stopwatch me-1"></i>Total Time:</strong> @(recipe.PreparationTime + recipe.CookingTime) min
+                                </div>
+                            </div>
+
+                            <!-- Ingredients Preview -->
+                            <div class="mb-3">
+                                <h6><i class="fas fa-list me-1"></i>Ingredients (@recipe.Ingredients.Count):</h6>
+                                <div class="row">
+                                    @foreach (var ingredient in recipe.Ingredients.Take(6))
+                                    {
+                                        <div class="col-md-6">
+                                            <small><i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>@ingredient.Quantity @ingredient.Unit @ingredient.IngredientName</small>
+                                        </div>
+                                    }
+                                    @if (recipe.Ingredients.Count > 6)
+                                    {
+                                        <div class="col-12">
+                                            <small class="text-muted">... and @(recipe.Ingredients.Count - 6) more ingredients</small>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Steps Preview -->
+                            <div class="mb-3">
+                                <h6><i class="fas fa-list-ol me-1"></i>Steps (@recipe.RecipeSteps.Count):</h6>
+                                @foreach (var step in recipe.RecipeSteps.Take(2))
+                                {
+                                    <div class="mb-2">
+                                        <strong><i class="fas fa-arrow-right me-1"></i>Step @step.StepNumber:</strong>
+                                        <span>@(step.StepDescription.Length > 100 ? step.StepDescription.Substring(0, 100) + "..." : step.StepDescription)</span>
+                                    </div>
+                                }
+                                @if (recipe.RecipeSteps.Count > 2)
+                                {
+                                    <small class="text-muted">... and @(recipe.RecipeSteps.Count - 2) more steps</small>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- View Full Recipe Button -->
+                    <div class="mb-3">
+                        <a asp-page="/Recipes/Details" asp-route-id="@recipe.RecipeID"
+                           class="btn btn-outline-primary" target="_blank">
+                            <i class="fas fa-external-link-alt me-1"></i>View Full Recipe Details
+                        </a>
+                    </div>
+
+                    <!-- Moderation Actions -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <!-- Approve Section -->
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-check me-1"></i>Approve Recipe
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <form method="post" asp-page-handler="Approve" asp-route-recipeId="@recipe.RecipeID">
+                                        <div class="mb-3">
+                                            <label class="form-label">
+                                                <i class="fas fa-comment me-1"></i>Approval Notes (optional):
+                                            </label>
+                                            <textarea name="notes" class="form-control" rows="2"
+                                              placeholder="Great recipe! Well structured and clear instructions..."></textarea>
+                                            <div class="form-text">Optional feedback for the chef</div>
+                                        </div>
+                                        <button type="submit" class="btn btn-success w-100">
+                                            <i class="fas fa-check me-1"></i>Approve Recipe
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <!-- Reject Section -->
+                            <div class="card border-danger">
+                                <div class="card-header bg-danger text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-times me-1"></i>Reject Recipe
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <form method="post" asp-page-handler="Reject" asp-route-recipeId="@recipe.RecipeID">
+                                        <div class="mb-3">
+                                            <label class="form-label">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>Rejection Reason (required):
+                                            </label>
+                                            <textarea name="notes" class="form-control" rows="2"
+                                              placeholder="Please specify what needs to be improved..."
+                                              required></textarea>
+                                            <div class="form-text">This feedback will help the chef improve their recipe</div>
+                                        </div>
+                                        <button type="submit" class="btn btn-danger w-100">
+                                            <i class="fas fa-times me-1"></i>Reject Recipe
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <!-- No Pending Recipes -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                        </div>
+                        <h3 class="mb-3">All Caught Up!</h3>
+                        <p class="text-muted mb-4">
+                            There are no recipes pending review at this time.<br>
+                            New submissions will appear here for your approval.
+                        </p>
+                        <div>
+                            <a asp-page="./Dashboard" class="btn btn-primary">
+                                <i class="fas fa-tachometer-alt me-1"></i>Return to Dashboard
+                            </a>
+                            <a asp-page="/Recipes/Index" class="btn btn-outline-primary">
+                                <i class="fas fa-book me-1"></i>View All Recipes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-hide success/error messages after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+}

@@ -1,0 +1,472 @@
+﻿@page "{id:int}"
+@model RecipeSharingPlatform.Pages.Recipes.EditModel
+@{
+    ViewData["Title"] = "Edit Recipe";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    <i class="fas fa-edit me-2 text-primary"></i>@ViewData["Title"]
+                </h1>
+                <div>
+                    <a asp-page="./Details" asp-route-id="@Model.RecipeID" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Recipe
+                    </a>
+                </div>
+            </div>
+
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Note:</strong> After editing, your recipe will need to be reviewed again before being published.
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-utensils me-2"></i>Edit Recipe Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                        <input asp-for="RecipeID" type="hidden" />
+
+                        <!-- Basic Recipe Information -->
+                        <h6 class="mb-3">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>Basic Information
+                        </h6>
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label asp-for="Input.Title" class="form-label">
+                                    <i class="fas fa-heading me-1"></i>Recipe Title
+                                </label>
+                                <input asp-for="Input.Title" class="form-control" placeholder="e.g., Grandma's Famous Spaghetti Carbonara" />
+                                <span asp-validation-for="Input.Title" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Input.CategoryID" class="form-label">
+                                    <i class="fas fa-tag me-1"></i>Category
+                                </label>
+                                <select asp-for="Input.CategoryID" asp-items="Model.Categories" class="form-select">
+                                    <option value="">Select Category</option>
+                                </select>
+                                <span asp-validation-for="Input.CategoryID" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Input.Description" class="form-label">
+                                <i class="fas fa-align-left me-1"></i>Description
+                            </label>
+                            <textarea asp-for="Input.Description" class="form-control" rows="3"
+                                      placeholder="Brief description of your recipe - what makes it special?"></textarea>
+                            <span asp-validation-for="Input.Description" class="text-danger"></span>
+                        </div>
+
+                        <!-- Time and Servings -->
+                        <h6 class="mb-3">
+                            <i class="fas fa-clock me-2 text-primary"></i>Timing & Servings
+                        </h6>
+
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label asp-for="Input.PreparationTime" class="form-label">
+                                    <i class="fas fa-clock me-1"></i>Preparation Time (minutes)
+                                </label>
+                                <input asp-for="Input.PreparationTime" type="number" class="form-control" min="1" max="1440" />
+                                <span asp-validation-for="Input.PreparationTime" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Input.CookingTime" class="form-label">
+                                    <i class="fas fa-fire me-1"></i>Cooking Time (minutes)
+                                </label>
+                                <input asp-for="Input.CookingTime" type="number" class="form-control" min="1" max="1440" />
+                                <span asp-validation-for="Input.CookingTime" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Input.Servings" class="form-label">
+                                    <i class="fas fa-users me-1"></i>Number of Servings
+                                </label>
+                                <input asp-for="Input.Servings" type="number" class="form-control" min="1" max="50" />
+                                <span asp-validation-for="Input.Servings" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Main Recipe Image -->
+                        <h6 class="mb-3">
+                            <i class="fas fa-camera me-2 text-primary"></i>Recipe Image
+                        </h6>
+
+                        <div class="mb-4">
+                            @if (Model.HasCurrentMainImage)
+                            {
+                                <div class="current-image mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-image me-1"></i>Current Image:
+                                    </label>
+                                    <div class="mb-2">
+                                        <img src="/image/GetRecipeImage/@Model.RecipeID" alt="Current recipe image"
+                                             class="img-thumbnail shadow" style="max-height: 200px;" />
+                                    </div>
+                                    <div class="form-check">
+                                        <input asp-for="RemoveMainImage" class="form-check-input" type="checkbox" />
+                                        <label asp-for="RemoveMainImage" class="form-check-label text-danger">
+                                            <i class="fas fa-trash me-1"></i>Remove current image
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+
+                            <label asp-for="Input.MainImageFile" class="form-label">
+                                <i class="fas fa-upload me-1"></i>
+                                @if (Model.HasCurrentMainImage)
+                                {
+                                    <span>Replace Recipe Image (optional)</span>
+                                }
+                                else
+                                {
+                                    <span>Upload Recipe Image (optional)</span>
+                                }
+                            </label>
+                            <input asp-for="Input.MainImageFile" type="file" class="form-control" accept="image/jpeg,image/jpg,image/png,image/webp" />
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                @if (Model.HasCurrentMainImage)
+                                {
+                                    <span>Upload a new image to replace the current one (JPG, PNG, WebP, max 5MB)</span>
+                                }
+                                else
+                                {
+                                    <span>Upload an appetizing photo of your finished dish (JPG, PNG, WebP, max 5MB)</span>
+                                }
+                            </div>
+                            <span asp-validation-for="Input.MainImageFile" class="text-danger"></span>
+                        </div>
+
+                        <!-- Ingredients Section -->
+                        <div class="card mb-4 shadow">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-list me-2"></i>Ingredients
+                                </h6>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addIngredient()">
+                                    <i class="fas fa-plus me-1"></i>Add Ingredient
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="ingredients-container">
+                                    @for (int i = 0; i < Model.Input.Ingredients.Count; i++)
+                                    {
+                                        <div class="ingredient-row mb-2">
+                                            <div class="row">
+                                                <div class="col-md-5">
+                                                    <input asp-for="Input.Ingredients[i].IngredientName" class="form-control" placeholder="Ingredient name" />
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <input asp-for="Input.Ingredients[i].Quantity" class="form-control" placeholder="Quantity" />
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <input asp-for="Input.Ingredients[i].Unit" class="form-control" placeholder="Unit (e.g., cups, grams)" />
+                                                </div>
+                                                <div class="col-md-1">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeIngredient(this)">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Modify your ingredients list. Be specific with quantities and units.
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Recipe Steps Section -->
+                        <div class="card mb-4 shadow">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-list-ol me-2"></i>Recipe Steps
+                                </h6>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRecipeStep()">
+                                    <i class="fas fa-plus me-1"></i>Add Step
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="steps-container">
+                                    @for (int i = 0; i < Model.Input.RecipeSteps.Count; i++)
+                                    {
+                                        <div class="step-row mb-3">
+                                            <div class="card">
+                                                <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <span class="step-number">
+                                                        <i class="fas fa-arrow-right me-2 text-primary"></i>Step @(i + 1)
+                                                    </span>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRecipeStep(this)">
+                                                        <i class="fas fa-trash me-1"></i>Remove Step
+                                                    </button>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">
+                                                            <i class="fas fa-align-left me-1"></i>Step Description
+                                                        </label>
+                                                        <textarea asp-for="Input.RecipeSteps[i].StepDescription" class="form-control" rows="3"
+                                                                  placeholder="Describe this step in detail..."></textarea>
+                                                    </div>
+
+                                                    <!-- Current step image handling -->
+                                                    @if (Model.Input.RecipeSteps[i].HasCurrentImage)
+                                                    {
+                                                        <div class="current-step-image mb-3">
+                                                            <label class="form-label">
+                                                                <i class="fas fa-image me-1"></i>Current Step Image:
+                                                            </label>
+                                                            <div class="mb-2">
+                                                                <img src="/image/GetStepImage/@Model.Input.RecipeSteps[i].StepID" alt="Current step image"
+                                                                     class="img-thumbnail shadow" style="max-height: 150px;" />
+                                                            </div>
+                                                            <div class="form-check">
+                                                                <input asp-for="Input.RecipeSteps[i].RemoveImage" class="form-check-input" type="checkbox" />
+                                                                <label asp-for="Input.RecipeSteps[i].RemoveImage" class="form-check-label text-danger">
+                                                                    <i class="fas fa-trash me-1"></i>Remove current step image
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    }
+
+                                                    <div class="mb-3">
+                                                        <label class="form-label">
+                                                            <i class="fas fa-camera me-1"></i>
+                                                            @if (Model.Input.RecipeSteps[i].HasCurrentImage)
+                                                            {
+                                                                <span>Replace Step Image (optional)</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span>Step Image (optional)</span>
+                                                            }
+                                                        </label>
+                                                        <input asp-for="Input.RecipeSteps[i].StepImageFile" type="file" class="form-control"
+                                                               accept="image/jpeg,image/jpg,image/png,image/webp" />
+                                                        <div class="form-text">
+                                                            <i class="fas fa-info-circle me-1"></i>
+                                                            Add a helpful photo for this step (JPG, PNG, WebP, max 5MB)
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Update your step-by-step instructions. Clear, detailed steps help others succeed!
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex justify-content-between pt-3">
+                            <a asp-page="./Details" asp-route-id="@Model.RecipeID" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Update Recipe
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        let ingredientCount = @Model.Input.Ingredients.Count;
+        let stepCount = @Model.Input.RecipeSteps.Count;
+
+        // Add new ingredient row
+        function addIngredient() {
+            const container = document.getElementById('ingredients-container');
+            const newRow = document.createElement('div');
+            newRow.className = 'ingredient-row mb-2';
+            newRow.innerHTML = `
+                <div class="row">
+                    <div class="col-md-5">
+                        <input name="Input.Ingredients[${ingredientCount}].IngredientName" class="form-control" placeholder="Ingredient name" />
+                    </div>
+                    <div class="col-md-3">
+                        <input name="Input.Ingredients[${ingredientCount}].Quantity" class="form-control" placeholder="Quantity" />
+                    </div>
+                    <div class="col-md-3">
+                        <input name="Input.Ingredients[${ingredientCount}].Unit" class="form-control" placeholder="Unit (e.g., cups, grams)" />
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeIngredient(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newRow);
+            ingredientCount++;
+        }
+
+        // Remove ingredient row
+        function removeIngredient(button) {
+            const ingredientRows = document.querySelectorAll('.ingredient-row');
+            if (ingredientRows.length > 1) {
+                button.closest('.ingredient-row').remove();
+                reindexIngredients();
+            } else {
+                alert('You must have at least one ingredient.');
+            }
+        }
+
+        // Add new recipe step
+        function addRecipeStep() {
+            const container = document.getElementById('steps-container');
+            const newStep = document.createElement('div');
+            newStep.className = 'step-row mb-3';
+            newStep.innerHTML = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="step-number">
+                            <i class="fas fa-arrow-right me-2 text-primary"></i>Step ${stepCount + 1}
+                        </span>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRecipeStep(this)">
+                            <i class="fas fa-trash me-1"></i>Remove Step
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-align-left me-1"></i>Step Description
+                            </label>
+                            <textarea name="Input.RecipeSteps[${stepCount}].StepDescription" class="form-control" rows="3" placeholder="Describe this step in detail..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-camera me-1"></i>Step Image (optional)
+                            </label>
+                            <input name="Input.RecipeSteps[${stepCount}].StepImageFile" type="file" class="form-control" accept="image/jpeg,image/jpg,image/png,image/webp" />
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Add a helpful photo for this step (JPG, PNG, WebP, max 5MB)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newStep);
+            stepCount++;
+            updateStepNumbers();
+        }
+
+        // Remove recipe step
+        function removeRecipeStep(button) {
+            const stepRows = document.querySelectorAll('.step-row');
+            if (stepRows.length > 1) {
+                button.closest('.step-row').remove();
+                reindexSteps();
+                updateStepNumbers();
+            } else {
+                alert('You must have at least one recipe step.');
+            }
+        }
+
+        // Reindex ingredients after removal
+        function reindexIngredients() {
+            const ingredientRows = document.querySelectorAll('.ingredient-row');
+            ingredientRows.forEach((row, index) => {
+                const inputs = row.querySelectorAll('input');
+                inputs[0].name = `Input.Ingredients[${index}].IngredientName`;
+                inputs[1].name = `Input.Ingredients[${index}].Quantity`;
+                inputs[2].name = `Input.Ingredients[${index}].Unit`;
+            });
+            ingredientCount = ingredientRows.length;
+        }
+
+        // Reindex steps after removal
+        function reindexSteps() {
+            const stepRows = document.querySelectorAll('.step-row');
+            stepRows.forEach((row, index) => {
+                const textarea = row.querySelector('textarea');
+                const fileInputs = row.querySelectorAll('input[type="file"]');
+                const checkboxes = row.querySelectorAll('input[type="checkbox"]');
+
+                textarea.name = `Input.RecipeSteps[${index}].StepDescription`;
+                if (fileInputs[0]) fileInputs[0].name = `Input.RecipeSteps[${index}].StepImageFile`;
+                if (checkboxes[0]) checkboxes[0].name = `Input.RecipeSteps[${index}].RemoveImage`;
+            });
+            stepCount = stepRows.length;
+        }
+
+        // Update step numbers in headers
+        function updateStepNumbers() {
+            const stepNumbers = document.querySelectorAll('.step-number');
+            stepNumbers.forEach((element, index) => {
+                element.innerHTML = `<i class="fas fa-arrow-right me-2 text-primary"></i>Step ${index + 1}`;
+            });
+        }
+
+        // Image management
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle main image remove checkbox
+            const removeMainImageCheckbox = document.querySelector('input[name="RemoveMainImage"]');
+            const mainImageFileInput = document.querySelector('input[name="Input.MainImageFile"]');
+
+            if (removeMainImageCheckbox && mainImageFileInput) {
+                removeMainImageCheckbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        mainImageFileInput.value = '';
+                    }
+                });
+            }
+
+            // Clear main image file input when new file is selected
+            if (mainImageFileInput && removeMainImageCheckbox) {
+                mainImageFileInput.addEventListener('change', function() {
+                    if (this.files.length > 0) {
+                        removeMainImageCheckbox.checked = false;
+                    }
+                });
+            }
+
+            // Handle step image remove checkboxes
+            document.addEventListener('change', function(e) {
+                if (e.target.matches('input[type="checkbox"][name*="RemoveImage"]')) {
+                    // Find the corresponding file input in the same step
+                    const stepCard = e.target.closest('.step-row');
+                    if (stepCard) {
+                        const fileInput = stepCard.querySelector('input[type="file"]');
+                        if (fileInput && e.target.checked) {
+                            fileInput.value = '';
+                        }
+                    }
+                }
+
+                if (e.target.matches('input[type="file"][name*="StepImageFile"]')) {
+                    // Find the corresponding remove checkbox in the same step
+                    const stepCard = e.target.closest('.step-row');
+                    if (stepCard && e.target.files.length > 0) {
+                        const removeCheckbox = stepCard.querySelector('input[type="checkbox"][name*="RemoveImage"]');
+                        if (removeCheckbox) {
+                            removeCheckbox.checked = false;
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

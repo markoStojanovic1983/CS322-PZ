@@ -1,0 +1,168 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="container">
+    <!-- Hero Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-primary text-white shadow-lg mb-5">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-utensils" style="font-size: 4rem;"></i>
+                    </div>
+                    <h1 class="display-4 mb-3">Welcome to Recipe Sharing Platform</h1>
+                    <p class="lead mb-4">
+                        Discover amazing recipes, share your culinary creations, and connect with food enthusiasts from around the world.
+                    </p>
+                    <div class="row justify-content-center">
+                        <div class="col-auto">
+                            <a asp-page="/Recipes/Index" class="btn btn-light btn-lg me-3">
+                                <i class="fas fa-search me-2"></i>Browse Recipes
+                            </a>
+                        </div>
+                        @if (!User.Identity.IsAuthenticated)
+                        {
+                            <div class="col-auto">
+                                <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-outline-light btn-lg">
+                                    <i class="fas fa-user-plus me-2"></i>Join Us Today
+                                </a>
+                            </div>
+                        }
+                        @if (User.IsInRole("Chef"))
+                        {
+                            <div class="col-auto">
+                                <a asp-page="/Recipes/Create" class="btn btn-success btn-lg">
+                                    <i class="fas fa-plus me-2"></i>Create Recipe
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Recipes Section -->
+    @if (Model.FeaturedRecipes != null && Model.FeaturedRecipes.Any())
+    {
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 class="text-center mb-5">
+                    <i class="fas fa-crown me-2 text-warning"></i>Featured Recipes
+                </h2>
+            </div>
+
+            @foreach (var recipe in Model.FeaturedRecipes)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow">
+                        @if (recipe.MainImage != null && recipe.MainImage.Length > 0)
+                        {
+                            <img src="/image/GetRecipeImage/@recipe.RecipeID"
+                                 class="card-img-top"
+                                 alt="@recipe.Title"
+                                 style="height: 200px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-utensils text-muted" style="font-size: 3rem;"></i>
+                            </div>
+                        }
+
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">@recipe.Title</h5>
+                        <p class="card-text flex-grow-1">
+                            @(recipe.Description.Length > 100
+                                                    ? recipe.Description.Substring(0, 100) + "..."
+                                                    : recipe.Description)
+                    </p>
+
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>@(recipe.PreparationTime + recipe.CookingTime) min •
+                                    <i class="fas fa-users me-1"></i>@recipe.Servings servings
+                            @if (recipe.Ratings.Any())
+                                    {
+                                        <span> • <i class="fas fa-star text-warning me-1"></i>@recipe.Ratings.Average(r => r.Score).ToString("F1")</span>
+                                    }
+                                </small>
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="badge bg-primary">@recipe.Category.CategoryName</span>
+                                <small class="text-muted ms-2">by @recipe.User.FirstName @recipe.User.LastName</small>
+                            </div>
+
+                            <div class="mt-auto">
+                                <a asp-page="/Recipes/Details" asp-route-id="@recipe.RecipeID" class="btn btn-primary">
+                                    <i class="fas fa-eye me-2"></i>View Recipe
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- No Recipes Available -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-3">
+                            <i class="fas fa-utensils text-muted" style="font-size: 3rem;"></i>
+                        </div>
+                        <h4 class="mb-3">No Recipes Available Yet</h4>
+                        <p class="text-muted mb-4">
+                            Be the first to share a recipe with our community!
+                        </p>
+                        @if (User.IsInRole("Chef"))
+                        {
+                            <a asp-page="/Recipes/Create" class="btn btn-primary btn-lg">
+                                <i class="fas fa-plus me-2"></i>Create First Recipe
+                            </a>
+                        }
+                        else if (User.Identity.IsAuthenticated)
+                        {
+                            <p class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>Only chefs can create recipes.
+                                <a asp-area="Identity" asp-page="/Account/Register">Register as a chef</a> to start sharing!
+                            </p>
+                        }
+                        else
+                        {
+                            <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-success btn-lg">
+                                <i class="fas fa-user-plus me-2"></i>Join as Chef
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Statistics Section (if user is authenticated) -->
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h5 class="mb-3">
+                            <i class="fas fa-chart-line me-2 text-success"></i>Welcome back, @User.Identity.Name!
+                        </h5>
+                        <p class="text-muted mb-0">
+                            Ready to discover new recipes or share your latest culinary creation?
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

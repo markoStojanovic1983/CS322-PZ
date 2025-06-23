@@ -1,0 +1,466 @@
+﻿@page "{id:int}"
+@model RecipeSharingPlatform.Pages.Recipes.DetailsModel
+@{
+    ViewData["Title"] = Model.Recipe.Title;
+}
+
+<div class="container">
+    <!-- Success/Error Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Recipe Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-3">
+                <i class="fas fa-utensils me-2 text-primary"></i>@Model.Recipe.Title
+            </h1>
+
+            <!-- Recipe Status Badge (for pending/rejected recipes) -->
+            @if (!Model.Recipe.IsApproved)
+            {
+                @if (Model.Recipe.IsRejected)
+                {
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle me-2"></i>
+                        <strong>Recipe Rejected:</strong> @Model.Recipe.ModerationNotes
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="fas fa-clock me-2"></i>
+                        <strong>Pending Approval:</strong> This recipe is waiting for admin approval.
+                    </div>
+                }
+            }
+
+            <!-- Recipe Meta Information -->
+            <div class="d-flex flex-wrap gap-3 mb-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-user-chef me-2 text-muted"></i>
+                    <strong>By:</strong> &nbsp; @Model.Recipe.User.FirstName @Model.Recipe.User.LastName
+                </div>
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-tag me-2 text-muted"></i>
+                    <strong>Category:</strong> &nbsp;
+                    <span class="badge bg-primary">@Model.Recipe.Category.CategoryName</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-calendar-plus me-2 text-muted"></i>
+                    <strong>Created:</strong> &nbsp; @Model.Recipe.CreatedDate.ToString("MMM dd, yyyy")
+                </div>
+            </div>
+
+            <!-- Recipe Quick Stats -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center shadow">
+                        <div class="card-body py-3">
+                            <i class="fas fa-clock text-primary fa-2x mb-2"></i>
+                            <h5 class="card-title text-primary mb-1">@Model.Recipe.PreparationTime</h5>
+                            <small class="text-muted">Prep Time (min)</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center shadow">
+                        <div class="card-body py-3">
+                            <i class="fas fa-fire text-success fa-2x mb-2"></i>
+                            <h5 class="card-title text-success mb-1">@Model.Recipe.CookingTime</h5>
+                            <small class="text-muted">Cook Time (min)</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center shadow">
+                        <div class="card-body py-3">
+                            <i class="fas fa-users text-warning fa-2x mb-2"></i>
+                            <h5 class="card-title text-warning mb-1">@Model.Recipe.Servings</h5>
+                            <small class="text-muted">Servings</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center shadow">
+                        <div class="card-body py-3">
+                            <i class="fas fa-stopwatch text-info fa-2x mb-2"></i>
+                            <h5 class="card-title text-info mb-1">@(Model.Recipe.PreparationTime + Model.Recipe.CookingTime)</h5>
+                            <small class="text-muted">Total Time (min)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="col-md-4 text-end">
+            @if (Model.CanUserEdit)
+            {
+                <div class="mb-3">
+                    <a asp-page="./Edit" asp-route-id="@Model.Recipe.RecipeID" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Recipe
+                    </a>
+                    <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Recipe.RecipeID" class="d-inline">
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="fas fa-trash me-2"></i>Delete Recipe
+                        </button>
+                    </form>
+                </div>
+            }
+
+            <!-- Favorites and Rating for logged-in users (not recipe owners) -->
+            @if (User.Identity.IsAuthenticated && !Model.CanUserEdit && Model.Recipe.IsApproved)
+            {
+                <div class="mb-3">
+                    <form method="post" asp-page-handler="ToggleFavorite" asp-route-id="@Model.Recipe.RecipeID" class="d-inline">
+                        <button type="submit" class="btn @(Model.IsUserFavorite ? "btn-danger" : "btn-outline-danger")">
+                            @if (Model.IsUserFavorite)
+                            {
+                                <i class="fas fa-heart-broken me-2"></i>
+                        
+                                <span>Remove from Favorites</span>
+                            }
+                            else
+                            {
+                                <i class="fas fa-heart me-2"></i>
+                        
+                                <span>Add to Favorites</span>
+                            }
+                        </button>
+                    </form>
+                </div>
+            }
+
+            <!-- Recipe Statistics -->
+            @if (Model.Recipe.IsApproved && (Model.TotalRatings > 0 || Model.TotalFavorites > 0))
+            {
+                <div class="mb-3">
+                    <div class="card shadow">
+                        <div class="card-body text-center">
+                            @if (Model.TotalRatings > 0)
+                            {
+                                <h5>
+                                    <i class="fas fa-star text-warning me-1"></i>@Model.AverageRating.ToString("F1")
+                                </h5>
+                                <small class="text-muted">@Model.TotalRatings rating@(Model.TotalRatings == 1 ? "" : "s")</small>
+                            }
+                            @if (Model.TotalFavorites > 0)
+                            {
+                                @if (Model.TotalRatings > 0)
+                                {
+                                    <hr class="my-2">
+                                }
+                                <div>
+                                    <span class="text-danger">
+                                        <i class="fas fa-heart me-1"></i>@Model.TotalFavorites
+                                    </span>
+                                    <br><small class="text-muted">favorite@(Model.TotalFavorites == 1 ? "" : "s")</small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Recipe Image -->
+        <div class="col-md-6 mb-4">
+            @if (Model.Recipe.MainImage != null && Model.Recipe.MainImage.Length > 0)
+            {
+                <img src="@Url.Action("GetRecipeImage", "Image", new { id = Model.Recipe.RecipeID })"
+                     class="img-fluid rounded shadow"
+                     alt="@Model.Recipe.Title"
+                     style="width: 100%; max-height: 400px; object-fit: cover;" />
+            }
+            else
+            {
+                <div class="bg-light rounded d-flex align-items-center justify-content-center shadow" style="height: 300px;">
+                    <div class="text-center">
+                        <i class="fas fa-image text-muted" style="font-size: 4rem;"></i>
+                        <p class="text-muted mt-2">No image available</p>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Recipe Description and Ingredients -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Description & Ingredients
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text mb-4">@Model.Recipe.Description</p>
+
+                    <h6 class="mb-3">
+                        <i class="fas fa-list me-2"></i>Ingredients:
+                    </h6>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var ingredient in Model.Recipe.Ingredients.OrderBy(i => i.IngredientID))
+                        {
+                            <li class="list-group-item px-0">
+                                <i class="fas fa-circle me-2 text-muted" style="font-size: 0.5rem;"></i>
+                                <strong>@ingredient.Quantity @ingredient.Unit</strong> @ingredient.IngredientName
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recipe Steps -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-ol me-2"></i>Instructions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @foreach (var step in Model.Recipe.RecipeSteps.OrderBy(s => s.StepNumber))
+                    {
+                        <div class="row mb-4 @(step != Model.Recipe.RecipeSteps.OrderBy(s => s.StepNumber).Last() ? "border-bottom pb-4" : "")">
+                            <div class="col-md-8">
+                                <div class="d-flex">
+                                    <div class="step-number-circle me-3">
+                                        <span class="badge bg-primary rounded-circle" style="width: 40px; height: 40px; line-height: 26px; font-size: 18px;">
+                                            @step.StepNumber
+                                        </span>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-2">
+                                            <i class="fas fa-arrow-right me-2 text-primary"></i>Step @step.StepNumber
+                                        </h6>
+                                        <p class="mb-0">@step.StepDescription</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                @if (step.StepImage != null && step.StepImage.Length > 0)
+                                {
+                                    <img src="@Url.Action("GetStepImage", "Image", new { id = step.StepID })"
+                                         class="img-fluid rounded shadow"
+                                         alt="Step @step.StepNumber"
+                                         style="max-height: 200px; width: 100%; object-fit: cover;" />
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rating System for logged-in users -->
+    @if (User.Identity.IsAuthenticated && !Model.CanUserEdit && Model.Recipe.IsApproved)
+    {
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            @if (Model.UserRating.HasValue)
+                            {
+                                <i class="fas fa-star-half-alt me-2"></i>
+                        
+                                <span>Update Your Rating</span>
+                            }
+                            else
+                            {
+                                <i class="fas fa-star me-2"></i>
+                        
+                                <span>Rate This Recipe</span>
+                            }
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" asp-page-handler="RateRecipe" asp-route-id="@Model.Recipe.RecipeID">
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-star me-1"></i>Your Rating
+                                        </label>
+                                        <div class="rating-input">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" asp-for="Input.Rating" value="@i" id="rating@i" />
+                                                    <label class="form-check-label" for="rating@i">
+                                                        @for (int j = 1; j <= i; j++)
+                                                        {
+                                                            <i class="fas fa-star text-warning"></i>
+                                                        }
+                                                        <span class="ms-1">(@i)</span>
+                                                    </label>
+                                                </div>
+                                            }
+                                        </div>
+                                        <span asp-validation-for="Input.Rating" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="Input.Comment" class="form-label">
+                                            <i class="fas fa-comment me-1"></i>Comment (optional)
+                                        </label>
+                                        <textarea asp-for="Input.Comment" class="form-control" rows="3"
+                                                  placeholder="Share your thoughts about this recipe..."></textarea>
+                                        <span asp-validation-for="Input.Comment" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-warning">
+                                @if (Model.UserRating.HasValue)
+                                {
+                                    <i class="fas fa-edit me-2"></i>
+                            
+                                    <span>Update Rating</span>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-paper-plane me-2"></i>
+                            
+                                    <span>Submit Rating</span>
+                                }
+                            </button>
+
+                            @if (Model.UserRating.HasValue)
+                            {
+                                <small class="text-muted ms-3">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    You previously rated this recipe @Model.UserRating.Value star@(Model.UserRating.Value == 1 ? "" : "s")
+                                </small>
+                            }
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Recent Ratings and Reviews -->
+    @if (Model.Recipe.IsApproved && Model.RecentRatings.Any())
+    {
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-comments me-2"></i>Recent Reviews
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var rating in Model.RecentRatings)
+                        {
+                            <div class="mb-3 @(rating != Model.RecentRatings.Last() ? "border-bottom pb-3" : "")">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <strong>
+                                            <i class="fas fa-user-circle me-1 text-muted"></i>@rating.UserName
+                                        </strong>
+                                        <div class="text-warning mb-1">
+                                            @for (int i = 1; i <= rating.Score; i++)
+                                            {
+                                                <i class="fas fa-star"></i>
+                                            }
+                                            <span class="text-muted ms-2">(@rating.Score)/5</span>
+                                        </div>
+                                        @if (!string.IsNullOrWhiteSpace(rating.Comment))
+                                        {
+                                            <p class="mb-1">
+                                                <i class="fas fa-quote-left me-1 text-muted"></i>@rating.Comment
+                                            </p>
+                                        }
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        @rating.RatingDate.ToString("MMM dd, yyyy")
+                                    </small>
+                                </div>
+                            </div>
+                        }
+
+                        @if (Model.TotalRatings > Model.RecentRatings.Count)
+                        {
+                            <div class="text-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-eye me-1"></i>
+                                    Showing @Model.RecentRatings.Count of @Model.TotalRatings total ratings
+                                </small>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Back to Recipes Button -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a asp-page="./Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to All Recipes
+            </a>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <a asp-page="/Profile/Favorites" class="btn btn-outline-danger">
+                    <i class="fas fa-heart me-2"></i>My Favorites
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Auto-hide success/error messages after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+
+        // Rating input
+            document.addEventListener('DOMContentLoaded', function() {
+            const ratingInputs = document.querySelectorAll('input[name="Input.Rating"]');
+
+            // Focus on comment field after rating selection
+            ratingInputs.forEach(function(input) {
+                input.addEventListener('change', function() {
+                    const commentField = document.querySelector('textarea[name="Input.Comment"]');
+                    if (commentField) {
+                        setTimeout(() => commentField.focus(), 100);
+                    }
+                });
+            });
+        });
+    </script>
+}

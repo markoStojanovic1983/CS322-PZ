@@ -1,0 +1,261 @@
+﻿@page
+@model RecipeSharingPlatform.Pages.Recipes.IndexModel
+@{
+    ViewData["Title"] = "Browse Recipes";
+}
+
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>
+                    <i class="fas fa-utensils me-2 text-primary"></i>@ViewData["Title"]
+                </h1>
+                @if (User.IsInRole("Chef"))
+                {
+                    <a asp-page="./Create" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>Create Recipe
+                    </a>
+                }
+            </div>
+            <p class="lead text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Discover amazing recipes from our community of chefs
+            </p>
+        </div>
+    </div>
+
+    <!-- Search and Filter Controls -->
+    <div class="card mb-4 shadow">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <i class="fas fa-search me-1"></i>Search Recipes
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control"
+                               placeholder="Search by recipe name, description, chef, or category..." />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">
+                        <i class="fas fa-filter me-1"></i>Category
+                    </label>
+                    <select name="categoryFilter" asp-items="Model.GetCategorySelectList()" class="form-select">
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">
+                        <i class="fas fa-sort me-1"></i>Sort By
+                    </label>
+                    <select name="sortBy" asp-items="Model.GetSortSelectList()" class="form-select">
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i>Search & Filter
+                    </button>
+                    @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || Model.CategoryFilter.HasValue || Model.SortBy != "newest")
+                    {
+                        <a asp-page="./Index" class="btn btn-outline-secondary ms-2">
+                            <i class="fas fa-eraser me-1"></i>Clear All
+                        </a>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results Summary -->
+    @if (Model.FilteredCount != Model.TotalRecipes)
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-filter me-2"></i>
+            <strong>@Model.FilteredCount</strong> recipe@(Model.FilteredCount == 1 ? "" : "s") found
+            out of <strong>@Model.TotalRecipes</strong> total recipes.
+        </div>
+    }
+    else if (Model.TotalRecipes > 0)
+    {
+        <div class="mb-3">
+            <small class="text-muted">
+                <i class="fas fa-book me-1"></i>
+                Showing all <strong>@Model.TotalRecipes</strong> recipe@(Model.TotalRecipes == 1 ? "" : "s")
+            </small>
+        </div>
+    }
+
+    <!-- Recipe Cards -->
+    @if (Model.Recipes.Any())
+    {
+        <div class="row">
+            @foreach (var recipeStats in Model.Recipes)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow">
+                        <!-- Recipe Image -->
+                        @if (recipeStats.Recipe.MainImage != null && recipeStats.Recipe.MainImage.Length > 0)
+                        {
+                            <img src="/image/GetRecipeImage/@recipeStats.Recipe.RecipeID"
+                                 class="card-img-top"
+                                 alt="@recipeStats.Recipe.Title"
+                                 style="height: 200px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-utensils text-muted" style="font-size: 3rem;"></i>
+                            </div>
+                        }
+
+                    <div class="card-body d-flex flex-column">
+                        <!-- Category Badge -->
+                        <div class="mb-2">
+                            <span class="badge bg-primary">
+                                <i class="fas fa-tag me-1"></i>@recipeStats.Recipe.Category.CategoryName
+                            </span>
+                        </div>
+
+                        <!-- Recipe Title and Description -->
+                        <h5 class="card-title">@recipeStats.Recipe.Title</h5>
+                        <p class="card-text">
+                            @(recipeStats.Recipe.Description.Length > 100
+                                                    ? recipeStats.Recipe.Description.Substring(0, 100) + "..."
+                                                    : recipeStats.Recipe.Description)
+                    </p>
+
+                            <!-- Chef Information -->
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-user-chef me-1"></i>
+                                    <strong>Chef:</strong> @recipeStats.Recipe.User.FirstName @recipeStats.Recipe.User.LastName
+                                </small>
+                            </div>
+
+                            <!-- Recipe Meta Info -->
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>@recipeStats.Recipe.PreparationTime min prep •
+                                    <i class="fas fa-fire me-1"></i>@recipeStats.Recipe.CookingTime min cook •
+                                    <i class="fas fa-users me-1"></i>@recipeStats.Recipe.Servings servings
+                                </small>
+                            </div>
+
+                            <!-- Rating and Favorites Stats -->
+                    @if (recipeStats.TotalRatings > 0 || recipeStats.FavoriteCount > 0)
+                            {
+                                <div class="mb-3">
+                                    <div class="row text-center">
+                                        @if (recipeStats.TotalRatings > 0)
+                                        {
+                                            <div class="col-6">
+                                                <small class="text-warning">
+                                                    <i class="fas fa-star me-1"></i>@recipeStats.AverageRating.ToString("F1")
+                                                    <br><span class="text-muted">(@recipeStats.TotalRatings rating@(recipeStats.TotalRatings == 1 ? "" : "s"))</span>
+                                                </small>
+                                            </div>
+                                        }
+                                        @if (recipeStats.FavoriteCount > 0)
+                                        {
+                                            <div class="col-6">
+                                                <small class="text-danger">
+                                                    <i class="fas fa-heart me-1"></i>@recipeStats.FavoriteCount
+                                                    <br><span class="text-muted">favorite@(recipeStats.FavoriteCount == 1 ? "" : "s")</span>
+                                                </small>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Creation Date -->
+                            <div class="mb-3 text-muted">
+                                <small>
+                                    <i class="fas fa-calendar-plus me-1"></i>
+                                    <strong>Created:</strong> @recipeStats.Recipe.CreatedDate.ToString("MMM dd, yyyy")
+                                </small>
+                            </div>
+
+                            <!-- Action Button -->
+                            <div class="mt-auto">
+                                <a asp-page="./Details" asp-route-id="@recipeStats.Recipe.RecipeID" class="btn btn-primary w-100">
+                                    <i class="fas fa-eye me-2"></i>View Recipe
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- No Recipes Found -->
+        <div class="card shadow">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || Model.CategoryFilter.HasValue)
+                    {
+                        <i class="fas fa-search text-muted" style="font-size: 4rem;"></i>
+                    }
+                    else
+                    {
+                        <i class="fas fa-utensils text-muted" style="font-size: 4rem;"></i>
+                    }
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || Model.CategoryFilter.HasValue)
+                {
+                    <h3 class="mb-3">No Recipes Found</h3>
+                    <p class="text-muted mb-4">
+                        No recipes match your search criteria. Try adjusting your filters or search terms.
+                    </p>
+                    <div>
+                        <a asp-page="./Index" class="btn btn-primary">
+                            <i class="fas fa-eraser me-2"></i>Clear Search
+                        </a>
+                        @if (User.IsInRole("Chef"))
+                        {
+                            <a asp-page="./Create" class="btn btn-success">
+                                <i class="fas fa-plus me-2"></i>Create Recipe
+                            </a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <h3 class="mb-3">No Recipes Available</h3>
+                    <p class="text-muted mb-4">
+                        Be the first to share a delicious recipe with our community!
+                    </p>
+                    <div>
+                        @if (User.IsInRole("Chef"))
+                        {
+                            <a asp-page="./Create" class="btn btn-success btn-lg">
+                                <i class="fas fa-plus me-2"></i>Create First Recipe
+                            </a>
+                        }
+                        else if (User.Identity.IsAuthenticated)
+                        {
+                            <p class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>Only chefs can create recipes.
+                                <a asp-area="Identity" asp-page="/Account/Register">Register as a chef</a> to start sharing!
+                            </p>
+                        }
+                        else
+                        {
+                            <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-success btn-lg">
+                                <i class="fas fa-user-plus me-2"></i>Join as Chef
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+}

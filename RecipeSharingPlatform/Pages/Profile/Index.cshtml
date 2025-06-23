@@ -1,0 +1,234 @@
+﻿@page
+@model RecipeSharingPlatform.Pages.Profile.IndexModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="container">
+    <!-- Success/Error Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>@ViewData["Title"]</h1>
+                <div>
+                    <a asp-page="./Edit" class="btn btn-primary">Edit Profile</a>
+                    <a asp-page="./ChangePassword" class="btn btn-outline-secondary">Change Password</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Profile Information Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <!-- Profile Image -->
+                    <div class="mb-3">
+                        @if (Model.CurrentUser.ProfileImage != null && Model.CurrentUser.ProfileImage.Length > 0)
+                        {
+                            <img src="/image/GetUserProfileImage/@Model.CurrentUser.Id"
+                                 class="rounded-circle img-thumbnail"
+                                 alt="Profile Picture"
+                                 style="width: 150px; height: 150px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto"
+                                 style="width: 150px; height: 150px;">
+                                <span class="text-muted" style="font-size: 48px;">
+                                    @Model.CurrentUser.FirstName.Substring(0, 1).ToUpper()@Model.CurrentUser.LastName.Substring(0, 1).ToUpper()
+                                </span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- User Name and Role -->
+                    <h4 class="mb-1">@Model.CurrentUser.FirstName @Model.CurrentUser.LastName</h4>
+                    <p class="text-muted mb-2">@@@Model.CurrentUser.UserName</p>
+
+                    <!-- Role Badge -->
+                    @if (Model.CurrentUser.Role == "Admin")
+                    {
+                        <span class="badge bg-danger mb-3">
+                            <i class="fas fa-crown me-1"></i>Administrator
+                        </span>
+                    }
+                    else if (Model.CurrentUser.Role == "Chef")
+                    {
+                        <span class="badge bg-success mb-3">
+                            <i class="fas fa-kitchen-set me-1"></i>Chef
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-primary mb-3">
+                            <i class="fas fa-user me-1"></i>Recipe Enthusiast
+                        </span>
+                    }
+
+                    <!-- Basic Info -->
+                    <div class="text-start">
+                        <p class="mb-1">
+                            <strong><i class="fas fa-envelope me-2"></i>Email:</strong> @Model.CurrentUser.Email
+                        </p>
+                        <p class="mb-1">
+                            <strong><i class="fas fa-calendar-plus me-2"></i>Member Since:</strong> @Model.Stats.MemberSince
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics and Actions -->
+        <div class="col-md-8">
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                @if (Model.CurrentUser.Role == "Chef")
+                {
+                    <!-- Recipe Statistics for Chefs -->
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center bg-primary text-white">
+                            <div class="card-body py-3">
+                                <h3 class="mb-1">@Model.Stats.TotalRecipes</h3>
+                                <small>Total Recipes</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center bg-success text-white">
+                            <div class="card-body py-3">
+                                <h3 class="mb-1">@Model.Stats.ApprovedRecipes</h3>
+                                <small>Approved</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center bg-warning text-dark">
+                            <div class="card-body py-3">
+                                <h3 class="mb-1">@Model.Stats.PendingRecipes</h3>
+                                <small>Pending</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center bg-info text-white">
+                            <div class="card-body py-3">
+                                <h3 class="mb-1">@Model.Stats.TotalFavorites</h3>
+                                <small>Favorites</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Simple Statistics for Users -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card text-center bg-info text-white">
+                            <div class="card-body py-3">
+                                <h3 class="mb-1">@Model.Stats.TotalFavorites</h3>
+                                <small>Favorite Recipes</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card text-center bg-secondary text-white">
+                            <div class="card-body py-3">
+                                <h3 class="mb-1">@Model.Stats.MemberSince</h3>
+                                <small>Member Since</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Chef Performance Card -->
+            @if (Model.CurrentUser.Role == "Chef" && Model.Stats.TotalRatingsReceived > 0)
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Recipe Performance</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <h2 class="text-warning">@Model.Stats.AverageRating.ToString("F1") <i class="fas fa-star"></i></h2>
+                                    <p class="text-muted">Average Rating</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <h2 class="text-info">@Model.Stats.TotalRatingsReceived</h2>
+                                    <p class="text-muted">Total Ratings Received</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Profile Management -->
+                        <div class="col-md-6 mb-3">
+                            <div class="d-grid gap-2">
+                                <a asp-page="./Edit" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit me-2"></i>Edit Profile Information
+                                </a>
+                                <a asp-page="./ChangePassword" class="btn btn-outline-secondary">
+                                    <i class="fas fa-lock me-2"></i>Change Password
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Role-specific Actions -->
+                        <div class="col-md-6 mb-3">
+                            <div class="d-grid gap-2">
+                                @if (Model.CurrentUser.Role == "Chef")
+                                {
+                                    <a asp-page="/Recipes/Create" class="btn btn-outline-success">
+                                        <i class="fas fa-plus me-2"></i>Create New Recipe
+                                    </a>
+                                    <a asp-page="./MyRecipes" class="btn btn-outline-info">
+                                        <i class="fas fa-clipboard-list me-2"></i>Manage My Recipes
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a asp-page="/Recipes/Index" class="btn btn-outline-success">
+                                        <i class="fas fa-utensils me-2"></i>Browse Recipes
+                                    </a>
+                                }
+                                <a asp-page="./Favorites" class="btn btn-outline-danger">
+                                    <i class="fas fa-heart me-2"></i>My Favorite Recipes
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

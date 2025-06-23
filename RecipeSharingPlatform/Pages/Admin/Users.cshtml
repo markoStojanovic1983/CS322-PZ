@@ -1,0 +1,315 @@
+﻿@page
+@model RecipeSharingPlatform.Pages.Admin.UsersModel
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<RecipeSharingPlatform.Models.User> UserManager
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><i class="fas fa-users me-2"></i>@ViewData["Title"]</h1>
+                <a asp-page="./Dashboard" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+            </div>
+            <p class="lead">Manage user accounts and permissions</p>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Search and Filters -->
+    <div class="card mb-4 shadow">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <i class="fas fa-search me-1"></i>Search Users
+                    </label>
+                    <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control"
+                           placeholder="Search by name, email, or username..." />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">
+                        <i class="fas fa-filter me-1"></i>Filter by Role
+                    </label>
+                    <select name="roleFilter" class="form-select">
+                        <option value="">All Roles</option>
+                        <option value="Admin" selected="@(Model.RoleFilter == "Admin")">
+                            <i class="fas fa-crown"></i> Admin
+                        </option>
+                        <option value="Chef" selected="@(Model.RoleFilter == "Chef")">
+                            <i class="fas fa-kitchen-set"></i> Chef
+                        </option>
+                        <option value="User" selected="@(Model.RoleFilter == "User")">
+                            <i class="fas fa-user"></i> User
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i>Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Users List -->
+    <div class="card shadow">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-users me-1"></i>Users (@Model.Users.Count)
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Users.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-id-card me-1"></i>User Info</th>
+                                <th><i class="fas fa-user-tag me-1"></i>Role</th>
+                                <th><i class="fas fa-chart-bar me-1"></i>Recipe Stats</th>
+                                <th><i class="fas fa-toggle-on me-1"></i>Account Status</th>
+                                <th><i class="fas fa-cogs me-1"></i>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var userStats in Model.Users)
+                            {
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <strong>
+                                                <i class="fas fa-user me-1 text-muted"></i>
+                                                @userStats.User.FirstName @userStats.User.LastName
+                                            </strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="fas fa-envelope me-1"></i>@userStats.User.Email
+                                            </small>
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="fas fa-at me-1"></i>@userStats.User.UserName
+                                            </small>
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar-plus me-1"></i>
+                                                Joined: @userStats.User.CreatedDate.ToString("MMM dd, yyyy")
+                                            </small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (userStats.User.Role == "Admin")
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-crown me-1"></i>Admin
+                                            </span>
+                                        }
+                                        else if (userStats.User.Role == "Chef")
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-kitchen-set me-1"></i>Chef
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-user me-1"></i>User
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (userStats.User.Role == "Chef")
+                                        {
+                                            <div>
+                                                <span class="badge bg-secondary">@userStats.RecipeCount total</span>
+                                                @if (userStats.ApprovedRecipeCount > 0)
+                                                {
+                                                    <span class="badge bg-success">@userStats.ApprovedRecipeCount approved</span>
+                                                }
+                                                @if (userStats.PendingRecipeCount > 0)
+                                                {
+                                                    <span class="badge bg-warning text-dark">@userStats.PendingRecipeCount pending</span>
+                                                }
+                                                @if (userStats.RejectedRecipeCount > 0)
+                                                {
+                                                    <span class="badge bg-danger">@userStats.RejectedRecipeCount rejected</span>
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <small class="text-muted">
+                                                <i class="fas fa-minus me-1"></i>No recipes
+                                            </small>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (userStats.User.LockoutEnd.HasValue && userStats.User.LockoutEnd > DateTimeOffset.UtcNow)
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-lock me-1"></i>Disabled
+                                            </span>
+                                        }
+                                        else if (userStats.User.EmailConfirmed)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Active
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-hourglass-half me-1"></i>Unconfirmed
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @{
+                                            var currentUser = await UserManager.GetUserAsync(User);
+                                            var isCurrentUser = userStats.User.Id == currentUser.Id;
+                                        }
+
+                                        @if (!isCurrentUser)
+                                        {
+                                            <div class="btn-group-vertical btn-group-sm" role="group">
+                                                <!-- Role Change Dropdown -->
+                                                <div class="dropdown">
+                                                    <button class="btn btn-outline-primary dropdown-toggle btn-sm" type="button"
+                                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="fas fa-user-cog me-1"></i>Change Role
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        @if (userStats.User.Role != "Admin")
+                                                        {
+                                                            <li>
+                                                                <form method="post" asp-page-handler="ChangeRole"
+                                                                      asp-route-userId="@userStats.User.Id" asp-route-newRole="Admin">
+                                                                    <button type="submit" class="dropdown-item">
+                                                                        <i class="fas fa-crown me-2"></i>Make Admin
+                                                                    </button>
+                                                                </form>
+                                                            </li>
+                                                        }
+                                                        @if (userStats.User.Role != "Chef")
+                                                        {
+                                                            <li>
+                                                                <form method="post" asp-page-handler="ChangeRole"
+                                                                      asp-route-userId="@userStats.User.Id" asp-route-newRole="Chef">
+                                                                    <button type="submit" class="dropdown-item">
+                                                                        <i class="fas fa-kitchen-set me-2"></i>Make Chef
+                                                                    </button>
+                                                                </form>
+                                                            </li>
+                                                        }
+                                                        @if (userStats.User.Role != "User")
+                                                        {
+                                                            <li>
+                                                                <form method="post" asp-page-handler="ChangeRole"
+                                                                      asp-route-userId="@userStats.User.Id" asp-route-newRole="User">
+                                                                    <button type="submit" class="dropdown-item">
+                                                                        <i class="fas fa-user me-2"></i>Make User
+                                                                    </button>
+                                                                </form>
+                                                            </li>
+                                                        }
+                                                    </ul>
+                                                </div>
+
+                                                <!-- Account Toggle -->
+                                                @if (userStats.User.LockoutEnd.HasValue && userStats.User.LockoutEnd > DateTimeOffset.UtcNow)
+                                                {
+                                                    <form method="post" asp-page-handler="ToggleAccount" asp-route-userId="@userStats.User.Id">
+                                                        <button type="submit" class="btn btn-success btn-sm">
+                                                            <i class="fas fa-unlock me-1"></i>Enable Account
+                                                        </button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <form method="post" asp-page-handler="ToggleAccount" asp-route-userId="@userStats.User.Id">
+                                                        <button type="submit" class="btn btn-warning btn-sm">
+                                                            <i class="fas fa-lock me-1"></i>Disable Account
+                                                        </button>
+                                                    </form>
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <small class="text-muted">
+                                                <i class="fas fa-user-check me-1"></i>Current User
+                                            </small>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <div class="mb-3">
+                        <i class="fas fa-users text-muted" style="font-size: 4rem;"></i>
+                    </div>
+                    <h5>No Users Found</h5>
+                    <p class="text-muted">
+                        @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || !string.IsNullOrWhiteSpace(Model.RoleFilter))
+                        {
+                            <span>No users match your search criteria.</span>
+                        }
+                        else
+                        {
+                            <span>No users in the system yet.</span>
+                        }
+                    </p>
+                    @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || !string.IsNullOrWhiteSpace(Model.RoleFilter))
+                    {
+                        <a asp-page="./Users" class="btn btn-primary">
+                            <i class="fas fa-eraser me-1"></i>Clear Filters
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-hide success/error messages after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+}

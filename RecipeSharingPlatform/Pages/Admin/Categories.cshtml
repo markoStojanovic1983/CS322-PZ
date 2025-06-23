@@ -1,0 +1,240 @@
+﻿@page
+@model RecipeSharingPlatform.Pages.Admin.CategoriesModel
+@{
+    ViewData["Title"] = "Manage Categories";
+}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><i class="fas fa-tags me-2"></i>@ViewData["Title"]</h1>
+                <a asp-page="./Dashboard" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+            </div>
+            <p class="lead">Manage recipe categories and their organization</p>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Category Form -->
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        @if (Model.EditingCategoryId.HasValue)
+                        {
+                            <i class="fas fa-edit me-1"></i>
+                        
+                            <span>Edit Category</span>
+                        }
+                        else
+                        {
+                            <i class="fas fa-plus me-1"></i>
+                        
+                            <span>Add New Category</span>
+                        }
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-page-handler="@(Model.EditingCategoryId.HasValue ? "Edit" : "Create")">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        @if (Model.EditingCategoryId.HasValue)
+                        {
+                            <input asp-for="EditingCategoryId" type="hidden" />
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="Input.CategoryName" class="form-label">
+                                <i class="fas fa-tag me-1"></i>Category Name
+                            </label>
+                            <input asp-for="Input.CategoryName" class="form-control" placeholder="e.g., Italian Cuisine" />
+                            <span asp-validation-for="Input.CategoryName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Description" class="form-label">
+                                <i class="fas fa-align-left me-1"></i>Description
+                            </label>
+                            <textarea asp-for="Input.Description" class="form-control" rows="3"
+                                      placeholder="Brief description of this category..."></textarea>
+                            <span asp-validation-for="Input.Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                @if (Model.EditingCategoryId.HasValue)
+                                {
+                                    <i class="fas fa-save me-1"></i>
+                                
+                                    <span>Update Category</span>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-plus me-1"></i>
+                                
+                                    <span>Create Category</span>
+                                }
+                            </button>
+
+                            @if (Model.EditingCategoryId.HasValue)
+                            {
+                                <a asp-page="./Categories" class="btn btn-secondary">
+                                    <i class="fas fa-times me-1"></i>Cancel Edit
+                                </a>
+                            }
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories List -->
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-folder me-1"></i>Existing Categories (@Model.Categories.Count)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Categories.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-tag me-1"></i>Category Name</th>
+                                        <th><i class="fas fa-align-left me-1"></i>Description</th>
+                                        <th><i class="fas fa-book me-1"></i>Recipes</th>
+                                        <th><i class="fas fa-info-circle me-1"></i>Status</th>
+                                        <th><i class="fas fa-cogs me-1"></i>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var categoryStats in Model.Categories)
+                                    {
+                                        <tr class="@(Model.EditingCategoryId == categoryStats.Category.CategoryID ? "table-warning" : "")">
+                                            <td>
+                                                <strong>@categoryStats.Category.CategoryName</strong>
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(categoryStats.Category.Description))
+                                                {
+                                                    <span>@(categoryStats.Category.Description.Length > 50 ? categoryStats.Category.Description.Substring(0, 50) + "..." : categoryStats.Category.Description)</span>
+                                                }
+                                                else
+                                                {
+                                                    <em class="text-muted">No description</em>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary">@categoryStats.RecipeCount total</span>
+                                                @if (categoryStats.ApprovedRecipeCount > 0)
+                                                {
+                                                    <span class="badge bg-success">@categoryStats.ApprovedRecipeCount approved</span>
+                                                }
+                                                @if (categoryStats.PendingRecipeCount > 0)
+                                                {
+                                                    <span class="badge bg-warning text-dark">@categoryStats.PendingRecipeCount pending</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (categoryStats.RecipeCount == 0)
+                                                {
+                                                    <span class="badge bg-secondary">
+                                                        <i class="fas fa-circle me-1"></i>Empty
+                                                    </span>
+                                                }
+                                                else if (categoryStats.ApprovedRecipeCount > 0)
+                                                {
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check-circle me-1"></i>Active
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="fas fa-clock me-1"></i>Pending Only
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a asp-page="./Categories" asp-page-handler="Edit" asp-route-id="@categoryStats.Category.CategoryID"
+                                                       class="btn btn-outline-primary">
+                                                        <i class="fas fa-edit me-1"></i>Edit
+                                                    </a>
+
+                                                    @if (categoryStats.RecipeCount == 0)
+                                                    {
+                                                        <form method="post" asp-page-handler="Delete" asp-route-categoryId="@categoryStats.Category.CategoryID" class="d-inline">
+                                                            <button type="submit" class="btn btn-outline-danger">
+                                                                <i class="fas fa-trash me-1"></i>Delete
+                                                            </button>
+                                                        </form>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button type="button" class="btn btn-outline-secondary" disabled
+                                                                title="Cannot delete category with recipes">
+                                                            <i class="fas fa-trash me-1"></i>Delete
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <div class="mb-3">
+                                <i class="fas fa-folder-open text-muted" style="font-size: 4rem;"></i>
+                            </div>
+                            <h5>No Categories Yet</h5>
+                            <p class="text-muted">Create your first category to organize recipes.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Auto-hide success/error messages after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+}

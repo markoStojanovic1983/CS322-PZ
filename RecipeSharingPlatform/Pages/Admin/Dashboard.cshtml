@@ -1,0 +1,224 @@
+﻿@page
+@model RecipeSharingPlatform.Pages.Admin.DashboardModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-tachometer-alt me-2"></i>@ViewData["Title"]
+            </h1>
+            <p class="lead">Welcome to the Recipe Sharing Platform administration panel.</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-primary text-white shadow">
+                <div class="card-body">
+                    <i class="fas fa-book-open fa-2x mb-2"></i>
+                    <h2 class="card-title">@Model.TotalRecipes</h2>
+                    <p class="card-text">Total Recipes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-warning text-dark shadow">
+                <div class="card-body">
+                    <i class="fas fa-clock fa-2x mb-2"></i>
+                    <h2 class="card-title">@Model.PendingRecipes</h2>
+                    <p class="card-text">Pending Review</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-success text-white shadow">
+                <div class="card-body">
+                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                    <h2 class="card-title">@Model.ApprovedRecipes</h2>
+                    <p class="card-text">Approved</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-danger text-white shadow">
+                <div class="card-body">
+                    <i class="fas fa-times-circle fa-2x mb-2"></i>
+                    <h2 class="card-title">@Model.RejectedRecipes</h2>
+                    <p class="card-text">Rejected</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-center bg-info text-white shadow">
+                <div class="card-body">
+                    <i class="fas fa-users fa-2x mb-2"></i>
+                    <h3 class="card-title">@Model.TotalUsers</h3>
+                    <p class="card-text">Total Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center bg-secondary text-white shadow">
+                <div class="card-body">
+                    <i class="fas fa-kitchen-set fa-2x mb-2"></i>
+                    <h3 class="card-title">@Model.TotalChefs</h3>
+                    <p class="card-text">Active Chefs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center bg-dark text-white shadow">
+                <div class="card-body">
+                    <i class="fas fa-tags fa-2x mb-2"></i>
+                    <h3 class="card-title">@Model.TotalCategories</h3>
+                    <p class="card-text">Categories</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a asp-page="./PendingRecipes" class="btn btn-warning w-100">
+                                <i class="fas fa-clock me-1"></i>
+                                <strong>Review Pending Recipes</strong>
+                                @if (Model.PendingRecipes > 0)
+                                {
+                                    <span class="badge bg-dark ms-2">@Model.PendingRecipes</span>
+                                }
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a asp-page="./Categories" class="btn btn-info w-100">
+                                <i class="fas fa-tags me-1"></i>
+                                <strong>Manage Categories</strong>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a asp-page="./Users" class="btn btn-secondary w-100">
+                                <i class="fas fa-users me-1"></i>
+                                <strong>Manage Users</strong>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a asp-page="/Recipes/Index" class="btn btn-primary w-100">
+                                <i class="fas fa-book me-1"></i>
+                                <strong>View All Recipes</strong>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentActivities.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-list me-1"></i>Activity</th>
+                                        <th><i class="fas fa-info-circle me-1"></i>Description</th>
+                                        <th><i class="fas fa-calendar me-1"></i>Date</th>
+                                        <th><i class="fas fa-flag me-1"></i>Status</th>
+                                        <th><i class="fas fa-cogs me-1"></i>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var activity in Model.RecentActivities)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <i class="fas fa-utensils me-1 text-primary"></i>@activity.Type
+                                            </td>
+                                            <td>@activity.Description</td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock me-1"></i>@activity.Date.ToString("MMM dd, yyyy HH:mm")
+                                                </small>
+                                            </td>
+                                            <td>
+                                                @if (activity.Status == "Approved")
+                                                {
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check me-1"></i>@activity.Status
+                                                    </span>
+                                                }
+                                                else if (activity.Status == "Rejected")
+                                                {
+                                                    <span class="badge bg-danger">
+                                                        <i class="fas fa-times me-1"></i>@activity.Status
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="fas fa-clock me-1"></i>@activity.Status
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (activity.RecipeId.HasValue)
+                                                {
+                                                    @if (activity.Status == "Pending")
+                                                    {
+                                                        <a asp-page="./PendingRecipes" class="btn btn-sm btn-primary">
+                                                            <i class="fas fa-eye me-1"></i>Review
+                                                        </a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <a asp-page="/Recipes/Details" asp-route-id="@activity.RecipeId" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-eye me-1"></i>View
+                                                        </a>
+                                                    }
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <p>No recent activity to display.</p>
+                            <p>Once chefs start creating recipes, you'll see their submissions here.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,233 @@
+﻿@page
+@model RecipeSharingPlatform.Pages.Profile.EditModel
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    <i class="fas fa-user-edit me-2 text-primary"></i>@ViewData["Title"]
+                </h1>
+                <a asp-page="./Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Profile
+                </a>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-id-card me-2"></i>Profile Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                        <!-- Profile Image Section -->
+                        <div class="row mb-4">
+                            <div class="col-md-4 text-center">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <strong><i class="fas fa-camera me-2"></i>Current Profile Picture</strong>
+                                    </label>
+                                    <div>
+                                        @if (Model.HasCurrentProfileImage)
+                                        {
+                                            <img src="/image/GetUserProfileImage/@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value"
+                                                 class="rounded-circle img-thumbnail shadow"
+                                                 alt="Current Profile Picture"
+                                                 style="width: 150px; height: 150px; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto shadow"
+                                                 style="width: 150px; height: 150px;">
+                                                <span class="text-muted" style="font-size: 48px;">
+                                                    <i class="fas fa-user"></i>
+                                                </span>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    @if (Model.HasCurrentProfileImage)
+                                    {
+                                        <div class="form-check mt-2">
+                                            <input asp-for="RemoveProfileImage" class="form-check-input" type="checkbox" />
+                                            <label asp-for="RemoveProfileImage" class="form-check-label text-danger">
+                                                <i class="fas fa-trash me-1"></i>Remove current image
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label asp-for="Input.ProfileImageFile" class="form-label">
+                                        <i class="fas fa-upload me-2"></i>
+                                        @if (Model.HasCurrentProfileImage)
+                                        {
+                                            <span>Upload New Profile Picture</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Upload Profile Picture</span>
+                                        }
+                                    </label>
+                                    <input asp-for="Input.ProfileImageFile" type="file" class="form-control"
+                                           accept="image/jpeg,image/jpg,image/png,image/webp" />
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        @if (Model.HasCurrentProfileImage)
+                                        {
+                                            <span>Upload a new image to replace your current profile picture (JPG, PNG, WebP, max 5MB)</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Upload your profile picture (JPG, PNG, WebP, max 5MB)</span>
+                                        }
+                                    </div>
+                                    <span asp-validation-for="Input.ProfileImageFile" class="text-danger"></span>
+                                </div>
+
+
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Personal Information -->
+                        <h6 class="mb-3">
+                            <i class="fas fa-user me-2 text-secondary"></i>Personal Information
+                        </h6>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Input.FirstName" class="form-label">
+                                    <i class="fas fa-user me-1"></i>First Name
+                                </label>
+                                <input asp-for="Input.FirstName" class="form-control" placeholder="Enter your first name" />
+                                <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Input.LastName" class="form-label">
+                                    <i class="fas fa-user me-1"></i>Last Name
+                                </label>
+                                <input asp-for="Input.LastName" class="form-control" placeholder="Enter your last name" />
+                                <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Username" class="form-label">
+                                <i class="fas fa-at me-1"></i>Username
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user-tag text-muted"></i>
+                                </span>
+                                <input asp-for="Input.Username" class="form-control" placeholder="Choose a unique username" />
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>This will be your public username on the platform.
+                            </div>
+                            <span asp-validation-for="Input.Username" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Input.Email" class="form-label">
+                                <i class="fas fa-envelope me-1"></i>Email Address
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-envelope text-muted"></i>
+                                </span>
+                                <input asp-for="Input.Email" type="email" class="form-control" placeholder="Enter your email address" />
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>This email will be used for login and notifications.
+                            </div>
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between pt-3">
+                            <a asp-page="./Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Additional Information Card -->
+            <div class="card mt-4 shadow">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-key me-2 text-warning"></i>Need to change your password?
+                    </h6>
+                    <p class="card-text text-muted">
+                        For security reasons, password changes are handled separately.
+                    </p>
+                    <a asp-page="./ChangePassword" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-lock me-2"></i>Change Password
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // File upload and image preview functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.querySelector('input[type="file"]');
+            const removeCheckbox = document.querySelector('input[name="RemoveProfileImage"]');
+
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // Uncheck remove image checkbox when new file is selected
+                        if (removeCheckbox) {
+                            removeCheckbox.checked = false;
+                        }
+
+                        // Basic file validation feedback
+                        const maxSize = 5 * 1024 * 1024; // 5MB
+                        if (file.size > maxSize) {
+                            alert('File size must be less than 5MB');
+                            fileInput.value = '';
+                            return;
+                        }
+
+                        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                        if (!allowedTypes.includes(file.type)) {
+                            alert('Please select a JPG, PNG, or WebP image file');
+                            fileInput.value = '';
+                            return;
+                        }
+                    }
+                });
+            }
+
+            // Clear file input when remove checkbox is checked
+            if (removeCheckbox) {
+                removeCheckbox.addEventListener('change', function() {
+                    if (this.checked && fileInput) {
+                        fileInput.value = '';
+                    }
+                });
+            }
+        });
+    </script>
+}
